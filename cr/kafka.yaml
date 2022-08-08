@@ -1,0 +1,60 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: Kafka
+metadata:
+  labels:
+    app: test-cluster
+  name: test-cluster
+spec:
+  clientsCa:
+    generateCertificateAuthority: false
+  clusterCa:
+    generateCertificateAuthority: false
+  entityOperator:
+    topicOperator: {}
+    userOperator: {}
+  kafka:
+    authorization:
+      type: simple
+    config:
+      default.replication.factor: 3
+      inter.broker.protocol.version: '3.1'
+      min.insync.replicas: 2
+      offsets.topic.replication.factor: 3
+      transaction.state.log.min.isr: 2
+      transaction.state.log.replication.factor: 3
+    listeners:
+      - name: plain
+        port: 9092
+        tls: false
+        type: internal
+      - authentication:
+          type: tls
+        name: tls
+        port: 9093
+        tls: true
+        type: internal
+    replicas: 3
+    storage:
+      size: 20Gi
+      type: persistent-claim
+      class: thin
+    version: 3.1.0
+  zookeeper:
+    replicas: 3
+    resources:
+      limits:
+        cpu: "500m"
+        memory: "1Gi"
+    jvmOptions:
+      -Xms: "1024m"
+      -Xmx: "1024m"
+    storage:
+      size: 5Gi
+      type: persistent-claim
+      class: thin
+    template:
+      pod:
+        affinity:
+          podAntiAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              - topologyKey: "kubernetes.io/hostname"
